@@ -21,12 +21,6 @@ const menuItems = [
         visible: ["admin", "doctor"],
       },
       {
-        icon: "/parent.png",
-        label: "Parents",
-        href: "/list/parents",
-        visible: ["admin", "doctor"],
-      },
-      {
         icon: "/subject.png",
         label: "Subjects",
         href: "/list/subjects",
@@ -40,7 +34,7 @@ const menuItems = [
       },
       {
         icon: "/lesson.png",
-        label: "Lessons",
+        label: "Lectures",
         href: "/list/lessons",
         visible: ["admin", "doctor"],
       },
@@ -88,36 +82,40 @@ const menuItems = [
       },
     ],
   },
-  {
-    title: "OTHER",
-    items: [
-      {
-        icon: "/profile.png",
-        label: "Profile",
-        href: "/profile",
-        visible: ["admin", "doctor", "student", "parent"],
-      },
-      {
-        icon: "/setting.png",
-        label: "Settings",
-        href: "/settings",
-        visible: ["admin", "doctor", "student", "parent"],
-      },
-      {
-        icon: "/logout.png",
-        label: "Logout",
-        href: "/logout",
-        visible: ["admin", "doctor", "student", "parent"],
-      },
-    ],
-  },
+  // {
+  //   title: "OTHER",
+  //   items: [
+  //     {
+  //       icon: "/profile.png",
+  //       label: "Profile",
+  //       href: "/profile",
+  //       visible: ["admin", "doctor", "student", "parent"],
+  //     },
+  //     {
+  //       icon: "/setting.png",
+  //       label: "Settings",
+  //       href: "/settings",
+  //       visible: ["admin", "doctor", "student", "parent"],
+  //     },
+  //     {
+  //       icon: "/logout.png",
+  //       label: "Logout",
+  //       href: "/logout",
+  //       visible: ["admin", "doctor", "student", "parent"],
+  //     },
+  //   ],
+  // },
 ];
 
+import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
-const Menu = () => {
+const Menu = async () => {
+  const user = await currentUser();
+
+  const role = user?.publicMetadata.role as string;
   return (
     <div className="mt-5 text-sm">
       {menuItems?.map((item) => (
@@ -125,16 +123,20 @@ const Menu = () => {
           <span className="hidden lg:block text-gray-500 font-light my-5">
             {item?.title}
           </span>
-          {item?.items?.map((i) => (
-            <Link
-              key={i?.label}
-              href={i?.href}
-              className="flex items-center justify-center gap-3 lg:justify-start text-gray-500 hover:bg-lamaSkyLight md:px-2 rounded-md"
-            >
-              <Image src={i?.icon} alt={i?.label} width={30} height={30} />
-              <span className="hidden lg:block">{i?.label}</span>
-            </Link>
-          ))}
+          {item?.items?.map((i) => {
+            if (i?.visible?.includes(role)) {
+              return (
+                <Link
+                  key={i?.label}
+                  href={i?.href}
+                  className="flex items-center justify-center gap-3 lg:justify-start text-gray-500 hover:bg-lamaSkyLight md:px-2 rounded-md"
+                >
+                  <Image src={i?.icon} alt={i?.label} width={30} height={30} />
+                  <span className="hidden lg:block">{i?.label}</span>
+                </Link>
+              );
+            }
+          })}
         </div>
       ))}
     </div>

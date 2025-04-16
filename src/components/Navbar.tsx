@@ -1,7 +1,11 @@
+import { UserButton } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 import { AlertCircle, MessageCircle, Search, User2 } from "lucide-react";
 import React from "react";
 
-const Navbar = () => {
+const Navbar = async () => {
+  const user = await currentUser();
+  const role = user?.publicMetadata.role as string;
   return (
     <div className="flex items-center justify-between p-5">
       {/* Search Bar*/}
@@ -26,10 +30,10 @@ const Navbar = () => {
         </div>
         <div className="flex flex-col cursor-pointer">
           <span className="text-xs leading-3 font-semibold">Rawan Mohmed</span>
-          <span className="text-[10px] text-right text-gray-500">Admin</span>
+          <span className="text-[10px] text-right text-gray-500">{role}</span>
         </div>
         <div className="cursor-pointer">
-          <User2 />
+          <UserButton />
         </div>
       </div>
     </div>

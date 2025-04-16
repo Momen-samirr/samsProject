@@ -1,6 +1,7 @@
 import Announcement from "@/components/Announcement";
 import AttendanceChart from "@/components/AttendanceChart";
 import CalendarRe from "@/components/CalendarRe";
+import CountChart from "@/components/CountChart";
 import MoneyChart from "@/components/MoneyChart";
 import StudentChart from "@/components/StudentChart";
 import UserCard from "@/components/UserCard";
@@ -13,16 +14,15 @@ const AdminRoute = () => {
       <div className="w-full lg:w-2/3 flex flex-col gap-6">
         {/* User Cards */}
         <div className="flex justify-between gap-5 flex-wrap">
+          <UserCard type="admin" />
           <UserCard type="student" />
           <UserCard type="doctor" />
-          <UserCard type="parent" />
-          <UserCard type="stuff" />
         </div>
         {/* Middel Charts */}
         <div className="flex flex-col lg:flex-row gap-5">
           {/* Student Chart */}
           <div className="w-full lg:w-1/3 h-[450px]">
-            <StudentChart />
+            <CountChart />
           </div>
           {/* Attendace Chart */}
           <div className="w-full lg:w-2/3 h-[450px]">

@@ -1,94 +1,178 @@
 "use client";
 
-import { ShieldCloseIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import React, { useState } from "react";
-// import DoctorForm from "./forms/DoctorForm";
+import { useRouter } from "next/navigation";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useFormState } from "react-dom";
+import { toast } from "react-toastify";
+import { FormContainerProps } from "./FormContainer";
+import {
+  deleteClass,
+  deletedoctor,
+  deleteExam,
+  deleteStudent,
+  deleteSubject,
+} from "@/lib/subject.action";
+
+const deleteActionMap = {
+  subject: deleteSubject,
+  class: deleteClass,
+  doctor: deletedoctor,
+  student: deleteStudent,
+  exam: deleteExam,
+  // TODO: OTHER DELETE ACTIONS
+  lesson: deleteSubject,
+  assignment: deleteSubject,
+  result: deleteSubject,
+  attendance: deleteSubject,
+  event: deleteSubject,
+  announcement: deleteSubject,
+};
+
+// USE LAZY LOADING
+
+// import doctorForm from "./forms/doctorForm";
 // import StudentForm from "./forms/StudentForm";
 
 const DoctorForm = dynamic(() => import("./forms/DoctorForm"), {
   loading: () => <h1>Loading...</h1>,
 });
-
 const StudentForm = dynamic(() => import("./forms/StudentForm"), {
   loading: () => <h1>Loading...</h1>,
 });
+const SubjectForm = dynamic(() => import("./forms/SubjectForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const ClassForm = dynamic(() => import("./forms/ClassForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+// const ExamForm = dynamic(() => import("./forms/ExamForm"), {
+//   loading: () => <h1>Loading...</h1>,
+// });
+// TODO: OTHER FORMS
 
 const forms: {
-  [key: string]: (type: "create" | "update", data?: any) => JSX.Element;
+  [key: string]: (
+    setOpen: Dispatch<SetStateAction<boolean>>,
+    type: "create" | "update",
+    data?: any,
+    relatedData?: any
+  ) => JSX.Element;
 } = {
-  doctor: (type, data) => <DoctorForm type={type} data={data} />,
-  student: (type, data) => <StudentForm type={type} data={data} />,
+  subject: (setOpen, type, data, relatedData) => (
+    <SubjectForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  class: (setOpen, type, data, relatedData) => (
+    <ClassForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  doctor: (setOpen, type, data, relatedData) => (
+    <DoctorForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  student: (setOpen, type, data, relatedData) => (
+    <StudentForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  // exam: (setOpen, type, data, relatedData) => (
+  //   <ExamForm
+  //     type={type}
+  //     data={data}
+  //     setOpen={setOpen}
+  //     relatedData={relatedData}
+  //   />
+  //   // TODO OTHER LIST ITEMS
+  // ),
 };
+
 const FromDialog = ({
-  tableName,
-  requestType,
+  table,
+  type,
   data,
   id,
-}: {
-  tableName:
-    | "doctor"
-    | "student"
-    | "parent"
-    | "subject"
-    | "class"
-    | "lesson"
-    | "exam"
-    | "assignment"
-    | "result"
-    | "attendance"
-    | "event"
-    | "announcement";
-  requestType: "create" | "update" | "delete";
-  data?: any;
-  id?: number;
-}) => {
-  const size = requestType === "create" ? "w-8 h-8" : "w-7 h-7";
-  const backgroundColor =
-    requestType === "create"
+  relatedData,
+}: FormContainerProps & { relatedData?: any }) => {
+  const size = type === "create" ? "w-8 h-8" : "w-7 h-7";
+  const bgColor =
+    type === "create"
+      ? "bg-lamaPurple"
+      : type === "update"
       ? "bg-lamaSky"
-      : requestType === "update"
-      ? "bg-lamaSky"
-      : "bg-lamaPurpleLight";
+      : "bg-lamaPurple";
+
   const [open, setOpen] = useState(false);
 
   const Form = () => {
-    return requestType === "delete" ? (
-      <form action="" className="p-5 flex flex-col gap-5">
-        <span>Are you sure you want to delete this {tableName}?</span>
-        <button className="bg-red-600 py-3 px-3 rounded-md self-center text-white w-max">
+    const [state, formAction] = useFormState(
+      deleteActionMap[table as keyof typeof deleteActionMap],
+      {
+        success: false,
+        error: false,
+      }
+    );
+
+    const router = useRouter();
+
+    useEffect(() => {
+      if (state.success) {
+        toast(`${table} has been deleted!`);
+        setOpen(false);
+        router.refresh();
+      }
+    }, [state, router]);
+
+    return type === "delete" && id ? (
+      <form action={formAction} className="p-4 flex flex-col gap-4">
+        <input type="text | number" name="id" value={id} hidden />
+        <span className="text-center font-medium">
+          All data will be lost. Are you sure you want to delete this {table}?
+        </span>
+        <button className="bg-red-700 text-white py-2 px-4 rounded-md border-none w-max self-center">
           Delete
         </button>
       </form>
-    ) : requestType === "create" || requestType === "update" ? (
-      forms[tableName](requestType, data)
+    ) : type === "create" || type === "update" ? (
+      forms[table](setOpen, type, data, relatedData)
     ) : (
-      "Form Not Found"
+      "Form not found!"
     );
   };
+
   return (
     <>
       <button
-        className={`${size} flex items-center justify-center rounded-full ${backgroundColor}`}
-        onClick={() => setOpen(!false)}
+        className={`${size} flex items-center justify-center rounded-full ${bgColor}`}
+        onClick={() => setOpen(true)}
       >
-        <Image
-          src={`/${requestType}.png`}
-          width={16}
-          height={16}
-          alt={`${requestType}`}
-        />
+        <Image src={`/${type}.png`} alt="" width={16} height={16} />
       </button>
       {open && (
-        <div className="absolute w-screen h-screen left-0 top-0 bg-black bg-opacity-60 z-200 flex items-center justify-center">
-          <div className="bg-white p-5 rounded-md relative w-[90%] md:w-[70%] lg:w-[60%] xl:w-[50%] 2xl:w-[40%]">
+        <div className="w-screen h-screen absolute left-0 top-0 bg-black bg-opacity-60 z-50 flex items-center justify-center">
+          <div className="bg-white p-4 rounded-md relative w-[90%] md:w-[70%] lg:w-[60%] xl:w-[50%] 2xl:w-[40%]">
             <Form />
             <div
-              className="absolute top-5 right-5 cursor-pointer"
+              className="absolute top-4 right-4 cursor-pointer"
               onClick={() => setOpen(false)}
             >
-              <ShieldCloseIcon />
+              <Image src="/close.png" alt="" width={14} height={14} />
             </div>
           </div>
         </div>
